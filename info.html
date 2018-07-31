@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>個人信息</title>
+    <script src="./assets/fastclick.js"></script>
+    <script src="./assets/viewport.js"></script>
+    <link rel="stylesheet" href="./assets/lay/css/layui.css">
+    <link rel="stylesheet" href="./assets/lay/js/css/modules/layer/default/layer.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/info.css">
+</head>
+
+<body>
+    <header>
+        <div class="title">
+            <a href="./index.html">
+                <img src="./images/goback.png" alt="">
+            </a>
+
+            <span>個人信息</span>
+        </div>
+
+        <div class="photo" id="test1">
+            <img class="layui-upload-img" id="demo1" src="">
+        </div>
+
+        <div class="name">kai</div>
+    </header>
+    <div class="section">
+
+        <ul>
+            <li>名稱
+                <span class="name" id="name"></span>
+            </li>
+            <li>聯繫方式
+                <span id="tel"></span>
+            </li>
+            <li>登錄賬號
+                <span id="login"></span>
+            </li>
+            <li>登錄密碼
+                <span id="password"></span>
+            </li>
+            <li>提成比例
+                <span id="rate"></span>
+            </li>
+        </ul>
+        <button id="logout" class="logout" style="opacity: 1;">退出登錄</button>
+    </div>
+</body>
+<script src="./assets/jquery.min.js"></script>
+<script src="./assets/lay/js/layui.js"></script>
+<script src="./assets/lay/js/lay/modules/upload.js"></script>
+<script src="./assets/lay/js/lay/modules/layer.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+
+
+        var id = window.getItem("id");
+        var photo=window.getItem("photo");
+        if(photo){
+            $("#demo1").attr("src",photo);
+        }else{
+            $("#demo1").attr("src","./images/photo.png");
+        }
+         
+        
+        //退出登录
+        $(".logout").click(function () {
+            window.removeItem("id");
+            window.removeItem("currency");
+            window.removeItem("photo")
+            location.href = "./login.html";
+        });
+
+        var data = {
+            "language": "zh_HK",
+        }
+        $.http.get({
+            url: "/v1/agent/" + id,
+            data: data,
+            success: function (res) {
+                console.log(res);
+                if (res.status == '10001') {
+                    $(".name").html(res.dataInfo.name);
+                    $("#tel").html(res.dataInfo.phone);
+                    $("#login").html(res.dataInfo.login);
+                    $("#password").html(res.dataInfo.password);
+                    $("#rate").html(res.dataInfo.commissionRate+"%");
+
+                }
+
+            }
+        });
+        //上传头像
+        layui.use('upload', function () {
+            var $ = layui.jquery,
+                upload = layui.upload;
+
+            var uploadInst = upload.render({
+                elem: '#test1',
+                url: "http://cdb-api-demo.isunn.cn/v1/agent/upload/"+id,
+                before: function (obj) {
+                    //预读本地文件示例，不支持ie8
+                    obj.preview(function (index, file, result) {
+                        // console.log(result);
+                        
+                        $('#demo1').attr('src', result); //图片链接（base64）
+                        window.setItem("photo",result)
+                    });
+                },
+                done: function (res) {
+                    
+                    if (res.code > 0) {
+                        return layer.msg('上传失败');
+                    }
+                    //上传成功
+                },
+                error: function () {
+                    //演示失败状态，并实现重传
+                    var demoText = $('#demoText');
+                    demoText.html(
+                        '<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>'
+                    );
+                    demoText.find('.demo-reload').on('click', function () {
+                        uploadInst.upload();
+                    });
+                    
+                }
+            });
+        })
+
+    })
+</script>
+
+</html>

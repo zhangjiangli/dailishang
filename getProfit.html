@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>已提現收益</title>
+    <script src="./assets/fastclick.js"></script>
+    <script src="./assets/viewport.js"></script>
+    <link rel="stylesheet" href="./assets/mescroll/mescroll.min.css">
+    <link rel="stylesheet" href="./assets/mui/css/mui.min.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/profit.css">
+    <style>
+        body section .main {
+            padding-left: 0.3rem;
+            padding-right: 0.4rem;
+            height: 1.56rem;
+            border-top: solid 0.01rem #e5e5e5;
+        }
+
+        section .yellowLogo {
+            background: url("./images/rect_logo_yellow.png") no-repeat left center !important;
+            background-size: 0.08rem 0.32rem !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mescroll" class="mescroll">
+        <header>
+            <div class="title">
+                <a href="./index.html">
+                    <img src="./images/goback.png" alt="">
+                </a>
+
+                <span>已提現收益</span>
+            </div>
+            <p>已提現收益</p>
+            <h1>
+                <span class="currency"></span>
+                <span class="amount"></span>
+            </h1>
+
+        </header>
+        <div id="view">
+        </div>
+    </div>
+
+    <script id="demo" type="text/html">
+        {{# layui.each(d.arr, function(index, item){ }}
+        <section id="sec">
+            {{# if(item.state === 1){ }}
+            <div class="titleBox yellowLogo">
+                <span class="statusName">{{item.stateName}}</span>
+                <span style="float: right;">
+                    <span class="currency">{{d.currency}}</span>
+                    <span class="amount">{{item.amount}}</span>
+                </span>
+            </div>
+            {{# }else{ }}
+            <div class="titleBox">
+                <span class="statusName">{{item.stateName}}</span>
+                <span style="float: right;">
+                    <span class="currency">{{d.currency}}</span>
+                    <span class="amount">{{item.amount}}</span>
+                </span>
+            </div>
+            {{# } }}
+
+            <a href="./profitDetail.html?profitID={{item.id}}" class="main">
+                <p class="bankName">{{item.acountName}} {{item.bankName}}</p>
+                <p class="cardNo">
+                    {{item.cardNo}}
+                </p>
+            </a>
+        </section>
+        {{# }); }}
+
+
+    </script>
+
+</body>
+
+
+</html>
+<script src="./assets/jquery.min.js"></script>
+<script src="./assets/mui/js/mui.min.js"></script>
+<script src="./assets/mescroll/mescroll.min.js"></script>
+<script src="./assets/lay/js/layui.js"></script>
+<script src="./assets/lay/js/lay/modules/laytpl.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+
+        var totalProfitAmount = getUrlRequest().totalProfitAmount;
+        // $(".amount").html(totalProfitAmount);
+        var id = window.getItem("id");
+        var currency = window.getItem("currency");
+        var list = {
+            "currency": currency
+        };
+        var data = {
+            "language": "zh_HK",
+        }
+
+        var page = 1;
+        //创建mescroll对象
+        var mescroll = new MeScroll("mescroll", { //第一个参数"mescroll"对应上面布局结构div的id
+            //如果您的下拉刷新是重置列表数据,那么down完全可以不用配置,具体用法参考第一个基础案例
+            //解析: down.callback默认调用mescroll.resetUpScroll(),而resetUpScroll会将page.num=1,再触发up.callback
+            down: {
+                use: false
+            },
+            up: {
+                empty: {
+                    tip: "没有更多数据了."
+                },
+                callback: upCallback, //上拉加载的回调
+                isBounce: false, //如果您的项目是在iOS的微信,QQ,Safari等浏览器访问的,建议配置此项.解析(必读)
+                htmlNodata: '<p class="upwarp-nodata">-- 沒有更多數據 --</p>',
+            }
+        });
+        //上拉加载
+        var totalPage = 1
+
+        function upCallback(page) {
+
+            var data = {
+                "language": "zh_HK",
+            }
+            if (totalPage < page.num) {
+                return;
+            }
+            // page.num++;
+            $.http.get({
+                url: "/v1/agentCash/list/" + id + "/" + page.num,
+                data: data,
+                success: function (res) {
+                    console.log(res);
+                    if (res.status == '10001') {
+                        // $(".amount").html(res.dataInfo[0].amount);
+                        $(".amount").html(res.dataInfo.tookProfitAmount)
+                        list.arr = res.dataInfo.frontVos;
+                        mescroll.endBySize(page.size, res.dataInfo.totalCount);
+                        //返回总条数
+                        totalPage = Math.ceil(res.dataInfo.totalCount / page.size);
+                        layui.use('laytpl', function () {
+                            var laytpl = layui.laytpl;
+                            var getTpl = demo.innerHTML,
+                                view = document.getElementById('view');
+                            laytpl(getTpl).render(list, function (html) {
+                                view.innerHTML += html;
+
+                            })
+
+
+                        })
+                    }
+
+                }
+            });
+
+        }
+
+
+        $(".currency").html(currency);
+
+
+    })
+</script>

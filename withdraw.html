@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="format-detection" content="telephone = no" />
+    <title>提現</title>
+    <script src="./assets/fastclick.js"></script>
+    <script src="./assets/viewport.js"></script>
+    <link rel="stylesheet" href="./assets/mui/css/mui.min.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/withdraw.css">
+</head>
+
+<body>
+    <header>
+        <!-- <img src="./images/shouyi_bg.png" alt=""> -->
+        <div class="title">
+            <a href="./index.html">
+                <img src="./images/goback.png" alt="">
+            </a>
+
+            <span>提現</span>
+        </div>
+
+    </header>
+    <section>
+        <a href="./changeYH.html" class="main clearfix">
+
+            <img src="./images/yinhang.png" alt="" style="width: 0.88rem;height: 0.88rem">
+            <div class="right">
+                <h4 id="name_bank">+ 添加银行</h4>
+                <h4 id="bankNo"></h4>
+            </div>
+            <img src="./images/sh_right.png" alt="" class="right_logo">
+
+        </a>
+
+    </section>
+
+    <section>
+        <div class="titleBox">
+            <label style="width: 2rem;display: inline-block;">提現金額</label>
+            <input type="text" id="profitMoney" placeholder="單次最高提現金額 100">
+        </div>
+        <hr class="hr">
+        <div class="titleBox" style="font-size: 0.24rem;color: #999;background-image: none;text-indent: 0">
+            可提現收益
+            <span class="currency">HK$</span>
+            <span id="totalMoney"></span>
+            <a id="totalGet" href="javascript:;" style="display: inline;position: absolute;right: 0.4rem;color: #0591B4">全部提現</a>
+        </div>
+    </section>
+
+    <button id="withdraw" class="withdraw">提現</button>
+    <span class="stay">
+        平台將會在10個工作日內處理您的提現申請,款項到賬需要1-5個 工作日
+    </span>
+</body>
+<script src="./assets/jquery.min.js"></script>
+<script src="./assets/mui/js/mui.min.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+
+        var currency = window.getItem("currency");
+        $(".currency").html(currency);
+        //从参数上获取可提现收益
+        var canTakeProfit = getUrlRequest().canTakeProfit;
+        $("#totalMoney").html(canTakeProfit);
+
+        $("#totalGet").click(function () {
+            $("#profitMoney").val($("#totalMoney").html());
+            $("#withdraw").css('opacity', '1');
+            /* $("#withdraw").click(function () {
+
+                profitSuccess();
+            }) */
+        });
+
+        $("#profitMoney").keyup(function () {
+            var val = $("#profitMoney").val();
+            if (val.length != 0) {
+                $("#withdraw").css('opacity', '1');
+                // $("#withdraw").click(function () {
+                //     profitSuccess();
+
+                // })
+            } else {
+                $("#withdraw").css('opacity', '0.44');
+                $("#withdraw").click(function () {
+                    location.href = "javascript:;";
+                })
+            }
+
+        });
+        $("#withdraw").click(function () {
+            var opacity = $("#withdraw").css("opacity")
+            if (opacity == 1) {
+                var val = $("#profitMoney").val();
+                if (val.length != 0) {
+                    var bankInfo = $("#name_bank").html();
+                    if (bankInfo != "+ 添加银行卡") {
+                        profitSuccess();
+                    }
+
+                }
+
+
+            }
+
+
+            // profitSuccess();
+
+        })
+        var id = window.getItem("id");
+        var data = {
+            "language": "zh_HK",
+        }
+
+        $.http.get({
+            url: "/v1/agent/bank/" + id,
+            data: data,
+            success: function (res) {
+                console.log(res);
+                if (res.status == '10001') {
+                    if (res.dataInfo.acountName == "") {
+                        $("#name_bank").html("+ 添加银行卡");
+                        $("#withdraw").click(function () {
+                            mui.alert('請添加銀行卡', '', function () {
+
+                            });
+                        })
+                    } else {
+                        $("#name_bank").html(res.dataInfo.acountName + " " + res.dataInfo.bankName);
+                        $("#bankNo").html(res.dataInfo.cardNo);
+                    }
+
+
+
+                    $("#totalMoney").html(res.dataInfo.canTakeProfitAmount);
+                }
+
+            }
+        });
+
+
+        function profitSuccess() {
+            var val = $("#profitMoney").val();
+            // console.log(val);
+
+            var agentId = localStorage.getItem("id");
+            var data = {
+                "language": "zh_HK",
+                "amount": val
+            }
+            if (data.amount != 0 && data.amount <= 100) {
+                $.http.post({
+                    url: "/v1/agent/" + agentId + "/cashApply",
+                    data: data,
+                    success: function (res) {
+                        console.log(res);
+                        if (res.status == '10001') {
+                            location.href = "./success.html";
+                        } else {
+                            mui.alert(res.msg, '', function () {
+
+                            });
+                        }
+                    }
+                });
+
+            } else {
+                if (data.amount == 0) {
+                    mui.alert('提現金額不能為0', '', function () {
+
+                    });
+                }
+                if (data.amount > 100) {
+                    mui.alert('單次最高提現金額最高為100', '', function () {});
+                }
+
+            }
+
+        }
+    })
+</script>
+
+</html>

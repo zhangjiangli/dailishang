@@ -1,0 +1,88 @@
+body header {
+  background: url("../images/shouyi_bg.png") no-repeat 100% 100%;
+  background-size: cover;
+  position: relative;
+  height: 1.12rem;
+}
+body header .title {
+  height: 0.34rem;
+  line-height: 0.34rem;
+  position: absolute;
+  top: 0.38rem;
+  left: 0;
+  width: 100%;
+}
+body header .title a {
+  display: block;
+  height: 0.34rem;
+  width: 0.4rem;
+  position: absolute;
+  left: 0.32rem;
+}
+body header .title a img {
+  height: 0.34rem;
+  width: 0.4rem;
+}
+body header .title span {
+  color: #0691b3;
+  font-size: 0.34rem;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+body section {
+  background-color: #fff;
+}
+body section .main {
+  padding-left: 0.3rem;
+  padding-right: 0.4rem;
+  height: 1.86rem;
+}
+body section .main .one {
+  width: 42%;
+  height: 100%;
+  float: left;
+  padding-top: 0.44rem;
+  position: relative;
+}
+body section .main .one span:first-child {
+  font-size: 0.28rem;
+  display: block;
+  margin-bottom: 0.14rem;
+  color: #666;
+}
+body section .main .one span.mount {
+  font-size: 0.4rem;
+  display: inline-block;
+  color: #333;
+}
+body section .main .one span.mount span {
+  font-size: 0.4rem;
+  display: inline-block;
+  color: #333;
+}
+body section .main a:last-child {
+  float: right;
+}
+body main {
+  padding: 0.3rem 0.4rem;
+  background: #fff;
+  border-top: solid 0.01rem #e5e5e5;
+}
+body main h3 {
+  font-size: 0.32rem;
+  color: #666;
+}
+body main h4 {
+  font-size: 0.24rem;
+  color: #999;
+  margin: 0.06rem 0;
+}
+body .more {
+  height: 0.7rem;
+  display: block;
+  width: 3rem;
+  margin: 0.2rem auto;
+  border-radius: 0.1rem;
+}

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>首頁</title>
+    <script src="./assets/fastclick.js"></script>
+    <script src="./assets/viewport.js"></script>
+    <link rel="stylesheet" href="./assets/mui/css/mui.min.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+
+<body>
+    <header>
+        <div class="title">
+            <span>首頁</span>
+        </div>
+
+        <a href="./info.html" class="user">
+            <div class="photo" id="photo">
+                <img src="./images/photo.png">
+            </div>
+            <div class="info">
+                <p id="name"></p>
+                <h4 id="pro">
+                    <span></span>% 提成
+                </h4>
+            </div>
+        </a>
+
+    </header>
+    <section>
+        <div class="titleBox">
+            收益
+        </div>
+        <div class="main">
+            <a href="javascript:;" class="one">
+                <span>昨日收益</span>
+                <span class="mount">
+                    <span class="currency"></span>
+                    <span id="yesterday"></span>
+                </span>
+                <img src="./images/sh_right.png" alt="">
+            </a>
+            <a href="javascript:;" class="two">
+                <span>累計可提現收益</span>
+                <span class="mount">
+                    <span class="currency"></span>
+                    <span id="canTakeProfit"></span>
+                </span>
+                <img src="./images/sh_right.png" alt="">
+            </a>
+        </div>
+        <div class="main">
+            <a href="javascript:;" class="three">
+                <span>已提現收益</span>
+                <span class="mount">
+                    <span class="currency"></span>
+                    <span id="tookProfit"></span>
+                </span>
+                <img src="./images/sh_right.png" alt="">
+
+            </a>
+            <a href="javascript:;" class="one">
+                <span>累計總收益</span>
+                <span class="mount">
+                    <span class="currency"></span>
+                    <span id="totalProfit"></span>
+                </span>
+                <img src="./images/sh_right.png" alt="">
+            </a>
+        </div>
+    </section>
+
+    <section style="margin-top: 0.2rem">
+        <div class="titleBox">
+            商戶
+        </div>
+        <div class="main" style="height: 1.54rem">
+            <a href="javascript:;" class="business">
+                <span style="color: #333;text-indent: 0.32rem;background: url('./images/sh_2.png') no-repeat left center;background-size: 0.12rem 0.12rem">
+                    代理商戶
+                </span>
+                <span id="business" style="display: block;margin-left: 0.33rem;margin-bottom: 0.2rem;color: #999;font-size: 0.28rem;">
+                    
+                </span>
+                <img src="./images/sh_right.png" alt="">
+            </a>
+            <a href="javascript:;" class="business">
+                <span style="color: #333;text-indent: 0.32rem;background: url('./images/sh_1.png') no-repeat left center;background-size: 0.12rem 0.12rem">
+                    累計訂單數
+                </span>
+                <span id="totalOrder" style="display: block;margin-left: 0.33rem;margin-bottom: 0.2rem;color: #999;font-size: 0.28rem;">
+                    
+                </span>
+                <img src="./images/sh_right.png" alt="">
+            </a>
+        </div>
+    </section>
+</body>
+<script src="./assets/jquery.min.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+        
+        // $("#photo>img").attr("src",localStorage.getItem("photo"));
+        var id = window.getItem("id");
+        
+        //获取代理商信息
+        $.http.get({
+            url: "/v1/agent/" + id,
+            data: {
+                "language": "zh_HK",
+            },
+            success: function (res) {
+                console.log(res);
+                if (res.status == '10001') {
+                    $(".mount .currency").html(res.dataInfo.currency);
+                    window.setItem("currency", res.dataInfo.currency);
+                    //更新头像
+                    if(res.dataInfo.headImg==""){
+                        $("#photo>img").attr("src","./images/photo.png");
+                    }else{
+                        $("#photo>img").attr("src",res.dataInfo.headImg);
+                        window.setItem("photo",res.dataInfo.headImg);
+
+                    }
+                    
+                }
+
+            }
+        });
+
+        $.http.get({
+            url: "/v1/agent/profit/" + id,
+            data: {
+                "language": "zh_HK",
+            },
+            success: function (res) {
+                console.log(res);
+                if (res.status == '10001') {
+                    $("#name").html(res.dataInfo.name);
+                    $("#pro span").html(res.dataInfo.commissionRate);
+                    $("#yesterday").html(res.dataInfo.yesterdayProfitAmount);
+                    $("#canTakeProfit").html(res.dataInfo.canTakeProfitAmount);
+                    $("#tookProfit").html(res.dataInfo.tookProfitAmount);
+                    $("#totalProfit").html(res.dataInfo.totalProfitAmount);
+                    $("#business").html(res.dataInfo.businessCount);
+                    $("#totalOrder").html(res.dataInfo.totalOrderCount);
+
+                    //首页页面跳转
+                    $(".one").click(function () {
+                        location.href = "./profit.html?totalProfitAmount=" + res.dataInfo
+                            .totalProfitAmount;
+                    });
+                    $(".two").click(function () {
+                        location.href = "./withdraw.html?canTakeProfit=" + res.dataInfo
+                            .canTakeProfitAmount;
+                    })
+                    $(".three").click(function () {
+                        location.href = "./getProfit.html?totalProfitAmount=" + res.dataInfo
+                            .totalProfitAmount;
+                    });
+
+                    $(".business").click(function(){
+                        location.href="./agencyBusiness.html?businessCount="+res.dataInfo.businessCount+"&totalOrderCount="+res.dataInfo.totalOrderCount;
+                    })
+
+                }
+
+            }
+        });
+        
+
+        
+    })
+</script>
+
+</html>

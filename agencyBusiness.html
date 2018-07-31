@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>代理商戶</title>
+    <link rel="stylesheet" href="./assets/mescroll/mescroll.min.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/agencyBusiness.css">
+    <!-- 解决click延迟问题 -->
+    <script src="./assets/fastclick.js"></script>
+    <script src="./assets/viewport.js"></script>
+</head>
+
+<body>
+    <div id="mescroll" class="mescroll">
+        <header>
+            <div class="title">
+                <a href="./index.html">
+                    <img src="./images/goback.png" alt="">
+                </a>
+                <span>代理商戶</span>
+            </div>
+
+        </header>
+        <section style="margin-top: 0.2rem">
+            <div class="main clearfix" style="height: 1.54rem">
+                <div class="one">
+                    <span style="color: #333;text-indent: 0.32rem;background: url('./images/sh_2.png') no-repeat left center;background-size: 0.12rem 0.12rem">
+                        代理商戶
+                    </span>
+                    <span id="businessCount" style="display: block;color: #999;font-size: 0.28rem;text-indent: 0.32rem;">
+
+                    </span>
+                </div>
+                <div class="one" style="float: right;">
+                    <span style="color: #333;text-indent: 0.32rem;background: url('./images/sh_1.png') no-repeat left center;background-size: 0.12rem 0.12rem">
+                        累計訂單數
+                    </span>
+                    <span id="totalOrderCount" style="display: block;color: #999;font-size: 0.28rem;text-indent: 0.32rem;">
+
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <div id="view">
+
+        </div>
+    </div>
+    <script id="demo" type="text/html">
+        {{# layui.each(d.arr, function(index, item){ }} {{# if(item.state === 0){ }}
+        <main style="color:#999;opacity: .5">
+            <h3>{{item.businessName}}
+                <h3/>
+                <h4 class="clearfix">消費金額：
+                    <span style="color: #999;font-size: 0.24rem;float: right;">{{d.currency}}
+                        <span>{{item.totalAmount}}</span>
+                    </span>
+                    <span>{{d.currency}}
+                        <span>{{item.totalPayAmount}}</span>
+                    </span>
+                    <h4/>
+                    <h4 class="clearfix">
+                        <span>累計訂單：
+                            <span>{{item.orderCount}}</span>
+                        </span>
+                        <span style="float: right">
+                            帶來收益
+                        </span>
+                    </h4>
+        </main>
+        {{# }else{ }}
+        <main>
+            <h3>{{item.businessName}}
+                <h3/>
+                <h4 class="clearfix">消費金額：
+                    <span style="color: #999;font-size: 0.24rem;float: right;">{{d.currency}}
+                        <span>{{item.totalAmount}}</span>
+                    </span>
+                    <span>{{d.currency}}
+                        <span>{{item.totalPayAmount}}</span>
+                    </span>
+                    <h4/>
+                    <h4 class="clearfix">
+                        <span>累計訂單：
+                            <span>{{item.orderCount}}</span>
+                        </span>
+                        <span style="float: right">
+                            帶來收益
+                        </span>
+                    </h4>
+        </main>
+        {{# } }} {{# }) }}
+    </script>
+    <!-- <button class="more">加載更多</button> -->
+</body>
+<!-- <script src="https://cdn.bootcss.com/vConsole/3.2.0/vconsole.min.js"></script>
+<script>
+    new VConsole()
+</script> -->
+<script src="./assets/jquery.min.js"></script>
+<!-- <script src="./assets/mui/js/mui.min.js"></script> -->
+<script src="./assets/lay/js/layui.js"></script>
+<script src="./assets/lay/js/lay/modules/laytpl.js"></script>
+<!-- <script src="./assets/lay/js/lay/modules/flow.js"></script> -->
+<script src="./assets/mescroll/mescroll.min.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+
+        var id = window.getItem("id");
+        var currency = window.getItem("currency");
+        var businessCount = getUrlRequest().businessCount;
+        var totalOrderCount = getUrlRequest().totalOrderCount;
+        var list = {
+            "currency": currency
+        };
+        var data = {
+            "language": "zh_HK",
+        }
+        // var page = 1;
+        
+        var mescroll = new MeScroll("mescroll", { 
+            
+            down: {
+                use: false
+            },
+            up: {
+                empty: {
+                    tip: "没有更多数据了."
+                },
+                noMoreSize: 1,
+                htmlNodata:'<p class="upwarp-nodata">-- 沒有更多數據 --</p>',
+                callback: upCallback, //上拉加载的回调
+                isBounce: false, //如果您的项目是在iOS的微信,QQ,Safari等浏览器访问的,建议配置此项.解析(必读)
+
+            }
+        });
+
+
+        $(".currency").html(currency);
+        $("#businessCount").html(businessCount);
+        $("#totalOrderCount").html(totalOrderCount);
+
+        //下拉刷新
+        /* function downCallback() {
+            var data = {
+                "language": "zh_HK",
+            }
+            $.http.get({
+                url: "/v1/agent/business/list/" + id + "/" + 1,
+                data: data,
+                success: function (res) {
+                    // page.num+=1;
+                    console.log(res);
+                    if (res.status == '10001') {
+                        list.arr = res.dataInfo.businessmenListVos;
+                        mescroll.endSuccess();
+
+                        layui.use('laytpl', function () {
+
+                            var laytpl = layui.laytpl;
+                            var getTpl = demo.innerHTML,
+                                view = document.getElementById(
+                                    'view');
+                            laytpl(getTpl).render(list,
+                                function (html) {
+                                    view.innerHTML = html;
+
+                                })
+
+                        })
+                    }
+
+                },
+                error: function (e) {
+                    //联网失败的回调,隐藏下拉刷新和上拉加载的状态
+                    mescroll.endErr();
+                }
+            });
+
+        }
+         */
+        //上拉加载
+        var totalPage = 1;
+        function upCallback(page) {
+
+            var data = {
+                "language": "zh_HK",
+            }
+
+            
+            if (totalPage < page.num) {
+                return;
+            }
+            $.http.get({
+                url: "/v1/agent/business/list/" + id + "/" + page.num,
+                data: data,
+                success: function (res) {
+                    
+                    console.log(res);
+                    if (res.status == '10001') {
+                        list.arr = res.dataInfo.businessmenListVos;
+                        mescroll.endBySize(page.size, res.dataInfo.businessCount);
+                        totalPage = Math.ceil(res.dataInfo.businessCount / page.size);
+
+                        layui.use('laytpl', function () {
+
+                            var laytpl = layui.laytpl;
+                            var getTpl = demo.innerHTML,
+                                view = document.getElementById(
+                                    'view');
+                            laytpl(getTpl).render(list,
+                                function (html) {
+                                    view.innerHTML += html;
+
+                                })
+
+                        })
+                    }
+
+                },
+                error: function (e) {
+                    //联网失败的回调,隐藏下拉刷新和上拉加载的状态
+                    mescroll.endErr();
+                }
+            });
+
+
+        }
+
+    })
+</script>
+
+</html>

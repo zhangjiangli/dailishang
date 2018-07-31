@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>詳細</title>
+    <script src="./assets/fastclick.js"></script>
+    <script src="./assets/viewport.js"></script>
+    <link rel="stylesheet" href="./assets/swiper/swiper-4.2.6.min.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/profitDetail.css">
+
+</head>
+
+<body>
+    <header>
+        <div class="title">
+            <a href="./getProfit.html">
+                <img src="./images/goback.png" alt="">
+            </a>
+
+            <span>詳細</span>
+        </div>
+
+    </header>
+    <main>
+        <div class="table">
+            <ul>
+                <li>交易單號
+                    <span id="orderNo"></span>
+                </li>
+                <li>開戶人
+                    <span id="acountName"></span>
+                </li>
+                <li>開戶銀行
+                    <span id="bankName"></span>
+                </li>
+                <li>銀行卡號
+                    <span id="cardNo"></span>
+                </li>
+            </ul>
+        </div>
+    </main>
+
+    <section id="view"></section>
+    <script id="demo" type="text/html">
+        {{# layui.each(d.arr, function(index, item){ }}
+        <div>
+            <div class="logo_title clearfix">
+                <div class="logo">
+                    <img src="./images/profit_detail_pro_{{index}}_{{item.state}}.png" alt="">
+                </div>
+                <div class="title">
+                    <p>{{item.message}}</p>
+                    <p>{{item.time}}</p>
+                </div>
+            </div>
+            <div class="process clearfix">
+                <div class="left">
+                    <h2>{{item.stateName}}</h2>
+                    {{# if(index!==2){ }}
+                    <div class="line"></div>
+                    {{# } }}
+
+                </div>
+                <div class="right">
+                    {{# layui.each(item.imgUrlList, function(imgIndex, imgItem){ }}
+                    <img src="{{imgItem}}" alt=""> {{# }) }}
+                </div>
+            </div>
+        </div>
+        {{# }) }}
+    </script>
+    <div class="mask">
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./assets/jquery.min.js"></script>
+<script src="./assets/swiper/swiper-4.2.6.min.js"></script>
+<script src="./assets/lay/js/layui.js"></script>
+<script src="./assets/lay/js/lay/modules/laytpl.js"></script>
+<script src="./assets/pinchzoom.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+
+        var id = getUrlRequest().profitID;
+        var list = {};
+        $.http.get({
+            url: "/v1/agentCash/info/" + id,
+            data: {
+                "language": "zh_HK",
+            },
+            success: function (res) {
+                console.log(res);
+                if (res.status == '10001') {
+                    $("ul #orderNo").html(res.dataInfo.orderNo);
+                    $("ul #acountName").html(res.dataInfo.acountName);
+                    $("ul #bankName").html(res.dataInfo.bankName);
+                    $("ul #cardNo").html(res.dataInfo.cardNo);
+
+                    list.arr = res.dataInfo.stateBeans;
+                    console.log(list);
+
+
+                    layui.use('laytpl', function () {
+                        var laytpl = layui.laytpl;
+                        var getTpl = demo.innerHTML,
+                            view = document.getElementById('view');
+                        laytpl(getTpl).render(list, function (html) {
+                            view.innerHTML = html;
+                        })
+                    })
+                }
+
+            }
+        });
+
+        //事件委托
+        $("#view").on("click", ".right img", function () {
+            var html="";
+            // $("html,body").css({opacity:0.5});
+            // $(this).toggleClass("scale");
+            $(".right img").each(function(index,element){
+                
+                html+="<img class='swiper-slide' src='"+$(element).attr('src')+"' >";
+                
+            });
+            $(".swiper-wrapper").html(html)
+            // $(".swiper-slide").attr("src",$(".right img").attr('src'));
+            
+            // $(".mask_block").toggleClass("mask");
+            $(".mask").show();
+
+            /* $('div.pinch-zoom').each(function () {
+                new RTP.PinchZoom($(this), {});
+            }); */
+            /* flag=true;
+            if($(".right img").hasClass("scale")){
+                $("#view").on("click", ".right img", function () {
+                    $(".mask").hide();
+                })
+            } */
+
+        })
+        $(".mask").on("click",function(){
+            $(this).hide();
+        })
+        var swiper = new Swiper('.swiper-container');
+
+    })
+</script>
+
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>登入</title>
+    <script src="./assets/fastclick.js"></script>
+    <script src="./assets/viewport.js"></script>
+    <link rel="stylesheet" href="./assets/mui/css/mui.min.css">
+    <link rel="stylesheet" href="./assets/lay/css/layui.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/login.css">
+</head>
+
+<body>
+    <header>
+        <div class="title">
+
+        </div>
+    </header>
+    <section>
+
+        <img src="./images/title.png" alt="" class="title">
+        <div class="form">
+            <div class="inputBox">
+                賬號
+                <input type="text" id="login">
+            </div>
+            <div class="inputBox password">
+                密碼
+                <input type="password" id="password">
+            </div>
+
+            <button id="submit" class="submit" disabled>登入</button>
+        </div>
+
+        <p id="forgetPW">忘記密碼請聯繫:
+            <a style="display: inline;" id="call"></a>
+        </p>
+    </section>
+
+</body>
+<script src="./assets/jquery.min.js"></script>
+<script src="./assets/mui/js/mui.min.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+
+        var login;
+        var pwd;
+        var _pwd;
+
+        var data = {
+            "language": "zh_HK"
+        };
+
+        $.http.get({
+            url: "/v1/agent/customePhone",
+            data: data,
+            success: function (res) {
+                console.log(res);
+                if (res.status == '10001') {
+                    $("p #call").html(res.dataInfo);
+                    $("p #call").click(function () {
+                        mui.confirm('是否呼叫？', $("p #call").html(), ['否', '是'], function (e) {
+                            if (e.index == 1) {
+                                console.log('333');
+
+                                //撥打
+                                $("p #call").attr('href', 'tel://' + res.dataInfo);
+                                window.location.href = 'tel://'+res.dataInfo;
+                            }
+                        })
+                    })
+                }
+
+            }
+        });
+
+        $(".form input").keyup(function () {
+
+            // console.log(_pwd);
+            login = $("#login").val();
+            pwd = $("#password").val();
+            _pwd = $.md5(pwd); //密码加密
+            //当账号密码不为空时 点击登入
+            if (login.length != 0 && pwd.length != 0) {
+                $("#submit").css('opacity', '1');
+                $("#submit").attr('disabled', false)
+            } else {
+                $("#submit").css('opacity', '0.3')
+                $("#submit").attr('disabled', true)
+            }
+
+        })
+        var canRequest = true;
+        $("#submit").click(function () {
+            var data = {
+                "language": "zh_HK",
+                "login": login,
+                "password": _pwd
+            };
+            if (login.length != 0 && pwd.length != 0) {
+                if (!canRequest) {
+                    return
+                }
+                canRequest = false
+                $.http.post({
+                        url: "/v1/agent/login",
+                        data: data,
+                        success: function (res) {
+                            canRequest = true
+                            if (res.status == '10001') {
+                                mui.toast('登入成功', {
+                                    duration: 'long',
+                                    type: 'div'
+                                });
+                                window.setItem("id", res.dataInfo.id)   
+                                // localStorage.setItem("id",res.dataInfo.id);
+                                window.setItem("photo", "./images/photo.png");
+                                //跳到首页
+                                // location.href = "./index.html?id=" + res.dataInfo.id;
+                                window.location.href = "index.html";
+                            } else {
+                                mui.alert(res.msg, '提示');
+                            }
+
+                        },
+                        error: function(){
+                            canRequest = true
+                        }
+                    });
+
+            }
+
+
+        })
+
+    })
+</script>
+
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>收益</title>
+    <script src="./assets/fastclick.js"></script>
+    <script src="./assets/viewport.js"></script>
+    <link rel="stylesheet" href="./assets/mescroll/mescroll.min.css">
+    <!-- <link rel="stylesheet" href="./assets/mui/css/mui.min.css"> -->
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/profit.css">
+</head>
+
+<body>
+    <div id="mescroll" class="mescroll">
+        <header>
+
+            <div class="title">
+                <a href="./index.html">
+                    <img src="./images/goback.png" alt="">
+                </a>
+
+                <span>收益</span>
+            </div>
+            <p>累計總收益</p>
+            <h1>
+                <span class="currency"></span>
+                <span class="total"></span>
+            </h1>
+
+        </header>
+        <div id="view"></div>
+    </div>
+
+    <script id="demo" type="text/html">
+        {{# if(d.arr.length === 0){ }}
+        <section>
+            <div class="main" style="background:#fafafa">
+                <p class="bankName" style="text-align:center;font-size:0.28rem"> </p>
+            </div>
+        </section>
+        {{# } }}
+        {{# layui.each(d.arr, function(index, item){ }}
+        <section style="margin-top: 0.2rem;">
+            <div class="titleBox">
+                
+                <span class="date">{{item.dateFlag}}</span>
+                <span style="float: right;">{{d.currency}}
+                    <span>{{item.amount}}</span>
+                </span>
+                
+            </div>
+            {{# if(item.detailList.length === 0){ }}
+            <hr class="hr">
+            <div class="titleBox" style="font-size: 0.24rem;color: #999;background-image: none;text-indent: 0">
+                今日沒收益噢 ...
+            </div>
+
+            {{# } }} {{# layui.each(item.detailList, function(index, count){ }}
+            <div class="main">
+                <p>{{count.businessName}}
+                    <span style="color: #999;font-size: 0.24rem;float: right;">+{{d.currency}}
+                        <span>{{count.amount}}</span>
+                    </span>
+                </p>
+                <p>
+                    <span>消費金額： {{d.currency}}
+                        <span>{{count.payAmount}}</span>
+                    </span>
+                    <span style="margin-left: 0.5rem">提成:
+                        <span>{{count.commissionRate}}</span>%
+                    </span>
+                </p>
+            </div>
+            {{# }) }}
+
+        </section>
+        {{# }) }}
+
+    </script>
+</body>
+<script src="./assets/jquery.min.js"></script>
+<script src="./assets/lay/js/layui.js"></script>
+<script src="./assets/lay/js/lay/modules/laytpl.js"></script>
+<script src="./assets/mescroll/mescroll.min.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+        //获取总收益
+        var totalProfitAmount = getUrlRequest().totalProfitAmount;
+        var id = window.getItem("id");
+        var currency = window.getItem("currency");
+        var list = {
+            "currency": currency
+        };
+
+        var mescroll = new MeScroll("mescroll", {
+
+            down: {
+                use: false
+            },
+            up: {
+                empty: {
+                    tip: "没有更多数据了."
+                },
+
+                noMoreSize: 1,
+                htmlNodata: '<p class="upwarp-nodata">-- 沒有更多數據 --</p>',
+                callback: upCallback, //上拉加载的回调
+                isBounce: false, //如果您的项目是在iOS的微信,QQ,Safari等浏览器访问的,建议配置此项.解析(必读)
+                
+            }
+        });
+        //上拉加载
+        
+
+        var totalPage = 1;
+
+        function upCallback(page) {
+            var data = {
+                "language": "zh_HK",
+                "page": page.num
+            }
+            if (totalPage < page.num) {
+                return;
+            }
+            $.http.get({
+                url: "/v1/agent/profit/list/" + id,
+                data: data,
+                success: function (res) {
+
+                    if (res.status == '10001') {
+                        console.log(res);
+                        list.arr = res.dataInfo.list;
+                        var arr=list.arr;
+                        if(totalPage==1){
+                            $(arr).each(function(index,element){
+                                if(index==0){
+                                    element.dateFlag='昨日';
+                                }
+                                if(index==1){
+                                    element.dateFlag='前天'
+                                }
+                                
+                                
+                            })
+                           
+                        }
+                        mescroll.endBySize(page.size, res.dataInfo.totalCount);
+                        //计算总页数
+                        totalPage = Math.ceil(res.dataInfo.totalCount / page.size);
+
+                        layui.use('laytpl', function () {
+                            var laytpl = layui.laytpl;
+                            var getTpl = demo.innerHTML,
+                                view = document.getElementById('view');
+                            laytpl(getTpl).render(list, function (html) {
+                                view.innerHTML += html;
+                            })
+                        })
+                    }
+
+                }
+            });
+
+        }
+
+        $(".currency").html(currency);
+        $(".total").html(totalProfitAmount);
+
+    })
+</script>
+
+</html>

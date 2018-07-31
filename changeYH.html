@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>修改銀行卡</title>
+    <script src="./assets/fastclick.js"></script>
+    <link rel="stylesheet" href="./assets/mui/css/mui.min.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/withdraw.css">
+    <link rel="stylesheet" href="./css/changeYH.css">
+    <script src="./assets/viewport.js"></script>
+  
+</head>
+
+<body>
+    <header>
+        <div class="title">
+            <a href="./withdraw.html">
+                <img src="./images/goback.png" alt="">
+            </a>
+
+            <span>修改銀行卡</span>
+        </div>
+
+    </header>
+    <div class="section">
+        <form>
+            <ul>
+                <li>
+                    <label>持卡人</label>
+                    <input id="name" type="text" value="">
+                </li>
+                <li>
+                    <label>開戶銀行</label>
+                    <input id="bank" type="text" value="">
+                </li>
+                <li>
+                    <label>開戶銀行卡號</label>
+                    <input id="card" type="text" value="">
+                </li>
+            </ul>
+            <button type="button" id="edit" class="withdraw" style="opacity: 1;">保存修改</button>
+        </form>
+
+
+    </div>
+
+</body>
+
+<script src="./assets/jquery.min.js"></script>
+<script src="./assets/mui/js/mui.min.js"></script>
+<script src="./assets/rollups/hmac-sha256.js"></script>
+<script src="./assets/md5.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    $(function () {
+        //解决click延迟问题
+        FastClick.attach(document.body);
+
+        var id = window.getItem("id");
+        var data = {
+            "language": "zh_HK",
+            "acountName": $("#name").val(),
+            "bankName": $("#bank").val(),
+            "cardNo": $("#card").val()
+        }
+        $.http.get({
+            url: "/v1/agent/bank/" + id,
+            data: data,
+            success: function (res) {
+                console.log(res);
+                if (res.status == '10001') {
+                    console.log(res);
+                    $("#name").val(res.dataInfo.acountName);
+                    $("#bank").val(res.dataInfo.bankName);
+                    $("#card").val(res.dataInfo.cardNo);
+
+                }
+
+            }
+        });
+        $("#edit").click(function () {
+
+            var data = {
+                "language": "zh_HK",
+                "acountName": $("#name").val(),
+                "bankName": $("#bank").val(),
+                "cardNo": $("#card").val()
+            }
+            console.log(data);
+
+            $.http.put({
+                url: "/v1/agent/updateBank/" + id,
+                data: data,
+                success: function (res) {
+                    console.log(res);
+                    if (res.status == '10001') {
+                        mui.toast('修改成功', {
+                            duration: 'long',
+                            type: 'div'
+                        });
+                    }
+
+                }
+            });
+        })
+
+    })
+</script>
+
+</html>
